@@ -40,7 +40,7 @@ app.post("/api/csv-to-json", (req, res) => {
       body: json,
     });
   } catch (err) {
-    res.status(500).send(err);
+    res.status(500).send(err.message);
   }
 });
 
