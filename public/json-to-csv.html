@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.0-beta1/dist/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-0evHe/X+R7YkIZDRvuzKMRqM+OrBnVFBL6DOitfPri4tjfHxaWutUpFmBp4vmVor" crossorigin="anonymous">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.0-beta1/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-pprn3073KE6tl6bjs2QrFaJGz5/SUsLqktiwsUTF55Jfv3qYSDhgCecCxMW52nD2"
+        crossorigin="anonymous"></script>
+    <title>CsvParser</title>
+    <style>
+        textarea {
+            height: 500px;
+            box-shadow: 0 0 0.25rem 0 rgba(0, 0, 0, 0.4);
+            background-color: rgb(21, 32, 43) !important;
+            color: rgb(100, 191, 145) !important;
+            font-size: 0.75em;
+            transition: 0.5s !important;
+            resize: none;
+            font-family: monospace !important;
+            font-size: 0.75em !important;
+        }
+
+        textarea::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        textarea::-webkit-scrollbar-thumb {
+            -webkit-box-shadow: inset 0 0 6px rgba(0, 0, 0, 0.3);
+            box-shadow: inset 0 0 6px rgba(0, 0, 0, 0.3);
+            border-radius: 10px;
+            background-color: rgb(100, 191, 145);
+            cursor: pointer;
+        }
+
+        textarea:focus {
+            box-shadow: 0 0 0.5rem 0 rgba(0, 0, 0, 0.6) !important;
+            border: none;
+        }
+    </style>
+</head>
+
+<body>
+    <ul class="nav nav-tabs">
+        <li class="nav-item">
+            <a class="nav-link" aria-current="page" href="/index.html">CSV-to-JSON</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link active" href="/json-to-csv.html">JSON-to-CSV</a>
+        </li>
+    </ul>
+    <div class="container">
+        <h1 align="center">&nbsp;&nbsp;JSON->CSV</h1>
+        <h4 align="center" class="mt-3">By <a href="https://github.com/SwarajBaral">@SwarajBaral</a></h4>
+
+        <div class="form-group row mt-3">
+            <form id="json-form" method="post">
+                <div class="row">
+                    <div class="col-sm">
+                        <textarea class="form-control" name="json" id="json"
+                            placeholder="Paste your json content"></textarea>
+                        <div class="row my-2">
+                            <div class="col">
+                                <input type="submit" id="submit" class="btn btn-success" value="Submit">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-sm output-textarea">
+
+                        <textarea readonly="true" class="form-control" id="csv" name="csv" placeholder="CSV text">
+                        </textarea>
+                    </div>
+                </div>
+
+            </form>
+        </div>
+
+        <div class="modal fade" id="loaderModal" tabindex="-1" role="dialog" aria-labelledby="loaderModalLabel"
+            aria-hidden="true">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <div class="modal-body d-flex flex-column align-items-center justify-content-center">
+                        <p align="center">Loading...</p>
+                        <div class="spinner-border" role="status">
+                            <span class="sr-only"></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="modal fade" id="exampleModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
+            aria-hidden="true">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="exampleModalLabel"></h5>
+                        <span class="close" data-bs-dismiss="modal" aria-label="Close" aria-hidden="true">&times;</span>
+                    </div>
+                    <div class="modal-body">
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <script src="https://code.jquery.com/jquery-3.6.0.min.js"
+            integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>
+        <script>
+            $("#json-form").on("submit", function (e)
+            {
+                e.preventDefault();
+                var jsonData = $("#json").val();
+                try
+                {
+                    JSON.parse(jsonData);
+                } catch (error)
+                {
+                    $("#exampleModalLabel").html("Formatting error");
+                    $(".modal-body").html(`<p align='center'>Invalid JSON data !</p>`)
+                    $("#exampleModal").modal('show');
+                    throw error;
+                }
+                $.ajax({
+                    method: "POST",
+                    url: "/api/json-to-csv",
+                    data: { json: jsonData },
+                    beforeSend: function ()
+                    {
+                        $("#loaderModal").modal('show');
+                    },
+                    success: function (msg)
+                    {
+                        setTimeout(() =>
+                        {
+                            $("#loaderModal").modal('hide');
+                            $("#csv").val(msg.body);
+                        }, 1000)
+                    },
+                    error: function (err)
+                    {
+                        $("#exampleModalLabel").html("Server Error");
+                        $(".modal-body").html(JSON.stringify(err))
+                        $("#exampleModal").modal('show');
+                    },
+                })
+            })
+        </script>
+</body>
+
+</html>
