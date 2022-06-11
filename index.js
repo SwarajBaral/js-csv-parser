@@ -44,9 +44,54 @@ app.post("/api/csv-to-json", (req, res) => {
   }
 });
 
+app.post("/api/json-to-csv", (req, res) => {
+  try {
+    var json;
+    try {
+      json = JSON.parse(req.body.json);
+    } catch (error) {
+      throw new Error("Invalid CSV data");
+    }
+
+    const fields = [];
+
+    var csv = "";
+
+    for (var i in json[0]) {
+      fields.push(i);
+    }
+
+    for (var index in fields) {
+      csv += fields[index];
+      if (parseInt(index) === fields.length - 1) {
+        csv += "\n";
+      } else {
+        csv += ",";
+      }
+    }
+
+    for (var object of json) {
+      for (var index in fields) {
+        csv += object[fields[index]] ? object[fields[index]] : "";
+        if (parseInt(index) === fields.length - 1) {
+          csv += "\n";
+        } else {
+          csv += ",";
+        }
+      }
+    }
+
+    res.status(200).json({
+      body: csv,
+    });
+  } catch (err) {
+    res.status(500).send(err.message);
+  }
+});
+
 app.listen("8000", (err) => {
   if (err) {
-    console.log(err);
+    console.error(err);
   }
-  console.log("Server listening on 8000");
+  console.log("Server listening on http://localhost:8000");
 });
